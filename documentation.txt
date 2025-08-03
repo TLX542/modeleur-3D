@@ -1,0 +1,223 @@
+[B-OOP-400]                                                          Raytracerrr
+Younes ELOTMANI       Loris FERNANDES      Ta'o DARBELLAY       Wassim BOUSSENNA
+Category: Informational                                                 May 2025
+
+                   Raytracer Protocol and Configuration Format
+                          B-OOP-400 Project Raytracer
+
+Status of This Memo
+
+  This memo provides information for the Raytracer project as part of
+  the B-OOP-400 curriculum. This document describes the configuration
+  format and usage of our implementation of a ray-tracing renderer.
+  Distribution of this memo is unlimited.
+
+Abstract
+
+  This document specifies the configuration file format and usage
+  instructions for the Raytracer project. The goal is to provide
+  comprehensive guidance on how to create scene configurations and
+  use the rendering engine effectively.
+
+Table of Contents
+
+  1. Introduction
+  2. Program Overview
+  3. Usage Instructions
+  4. Configuration File Format
+  5. Primitives Specification
+  6. Lighting System
+  7. Camera Configuration
+  8. Supported Features
+  9. Performance Considerations
+  10. References
+  11. Authors' Address
+
+1. Introduction
+
+  Raytracer is a 3D rendering system that simulates the inverse path of
+  light to generate realistic digital images. This document outlines the
+  configuration file format and usage instructions for the raytracer
+  program developed as part of the B-OOP-400 project.
+
+2. Program Overview
+
+  The Raytracer is a C++ program that reads scene descriptions from
+  configuration files and produces rendered images in PPM format. It
+  implements core ray-tracing algorithms to simulate light interaction
+  with various primitives and materials, creating realistic 3D scenes.
+
+3. Usage Instructions
+
+  Run the raytracer using:
+    ./raytracer <SCENE_FILE>
+
+  Where <SCENE_FILE> is a valid configuration file describing the scene.
+  
+  Upon execution, the program will:
+    - Parse the scene configuration
+    - Initialize the camera and scene objects
+    - Render the scene by tracing rays from the camera
+    - Output the result to a PPM file named "output.ppm"
+
+4. Configuration File Format
+
+  The scene configuration uses libconfig++ format. All scene elements are
+  defined in clear, hierarchical sections:
+
+  Main sections:
+    - camera: Defines view parameters
+    - primitives: Contains all renderable objects
+    - lights: Configures lighting parameters
+
+  Example:
+    camera: {
+        resolution = { width = 1400; height = 1050; };
+        position = { x = 0.0; y = 2.0; z = 10.0; };
+        rotation = { x = 0.0; y = 0.0; z = 0.0; };
+        fieldOfView = 75.0;
+    };
+
+5. Primitives Specification
+
+  The following primitives are supported:
+
+  a. Spheres:
+    spheres = (
+      {
+        x = -5.0;
+        y = 5.0;
+        z = 0.0;
+        r = 2.0;
+        color = { r = 255; g = 64; b = 64; };
+        rotation = { rotation_axis = "z"; rotation_angle = 45.0; }; (Optional)
+      }
+    );
+
+  b. Planes:
+    planes = (
+      {
+        axis = "Y";
+        position = -1.0;
+        color = { r = 255; g = 228; b = 196; };
+        rotation = { rotation_axis = "z"; rotation_angle = 45.0; }; (Optional)
+      }
+    );
+
+  c. Cones:
+    cones = (
+      {
+        apex = { x = 0.0; y = 3.0; z = -2.0; };
+        direction = { x = 0.0; y = -1.0; z = 0.0; };
+        angle = 30.0;
+        height = 3.0;
+        color = { r = 255; g = 255; b = 0; };
+        rotation = { rotation_axis = "z"; rotation_angle = 45.0; }; (Optional)
+      }
+    );
+
+  d. Cylinders:
+    cylinders = (
+      {
+        center = { x = 5.0; y = 0.0; z = -10.0; };
+        direction = { x = 0.0; y = 1.0; z = 0.0; };
+        radius = 1.5;
+        height = 4.0;
+        color = { r = 0; g = 255; b = 255; };
+        rotation = { rotation_axis = "Y"; angle = 45.0; }; (Optional)
+      }
+    );
+
+  e. Triangles:
+    triangles = (
+      {
+        a = (0.0, 0.0, 0.0);
+        b = (1.0, 0.0, 0.0);
+        c = (0.0, 1.0, 0.0);
+        color = { r = 255; g = 165; b = 0; };
+      }
+    )
+  
+  Note:
+    if a rotation setting is written, and consecutive primitives of the same
+    shape must also have a rotation setting. If the rotation of the consecutive
+    shapes aren't meant to be changed, set the angle to 0
+
+6. Lighting System
+
+  The lighting system supports both ambient and directional lighting:
+
+  lights: {
+      ambient = 0.4;   // Ambient light intensity (0.0 to 1.0)
+      diffuse = 0.6;   // Diffuse reflection coefficient
+      point = (        // Point light sources
+          { x = 400.0; y = 200.0; z = 500.0; },
+          { x = -300.0; y = 150.0; z = 200.0; }
+      );
+      directional = (  // Directional light sources
+          { x = -1.0; y = -1.0; z = 0.0; } (light is down right at a 45° angle)
+      );
+  };
+
+  The maximum for the total amount of lighting should be at 1.
+  Anything above leads to surexposure like an actual camera.
+
+7. Camera Configuration
+
+  The camera section defines the viewpoint and rendering parameters:
+
+  camera: {
+    resolution = { width = 1400; height = 1050; };  // Output image size
+    position = { x = 0.0; y = 2.0; z = 10.0; };           // Camera position
+    rotation = { x = 0.0; y = 0.0; z = 0.0; };      // Orientation (degrees)
+    fieldOfView = 75.0;                             // FoV angle (degrees)
+  };
+
+  You can move the camera in the scene at runtime.
+  Controls for camera movement:
+    Z                - Moves the camera forward.
+    S                - Moves the camera backwards.
+    Q                - Moves the camera to the left.
+    D                - Moves the camera to the right.
+    O / Up           - Tilts the camera upwards.
+    L / Down         - Tilts the camera downwards.
+    A / Left         - Rotates the camera anti-clockwise.
+    E / Right        - Rotates the camera clockwise.
+    I / Space        - Moves the camera upwards.
+    K / Left Control - Moves the camera downwards
+
+8. Supported Features
+
+  Currently implemented features:
+  - Primitives: Sphere, Plane, Limited Cylinder, Limited Cone, Triangles
+  - Transformations: Translation, Rotation
+  - Lighting: Directional light, Ambient light, Drop shadows,
+              Multiple point lights
+  - Materials: Flat color
+  - Scene configuration: Add primitives to scene, Set up lighting, Set up camera
+  - Output: PPM file format and live rendering with SFML
+  - Optimisations: Multithreading
+  - Camera movement
+
+9. Performance Considerations
+
+  Rendering time depends on scene complexity, image resolution, and
+  hardware specifications. For optimal performance:
+  
+  - Use reasonable resolutions (1920x1080 or lower for testing)
+  - Limit the number of light sources
+  - Start with simple scenes and gradually increase complexity
+
+10. References
+
+  [1] Raytracer Project Specification B-OOP-400
+  [2] libconfig++ Documentation
+
+11. Authors' Address
+
+  Younes ELOTMANI - younes.elotmani@epitech.eu
+  Loris FERNANDES - loris.fernandes@epitech.eu
+  Ta'o DARBELLAY - ta-o.darbellay@epitech.eu
+  Wassim BOUSSENNA - wassim.boussenna@epitech.eu
+  [B-OOP-400] Raytracerrr
+  github.com/EpitechPromo2028/B-OOP-400-NCY-4-1-raytracer-younes.elotmani
